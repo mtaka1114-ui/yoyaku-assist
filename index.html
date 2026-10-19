@@ -48,6 +48,7 @@ h3{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:12px 0 -6px}
 .note{font-size:13px;color:var(--warn);margin-top:6px}
 .sub{font-size:14px;color:var(--muted);margin-top:8px}
 .alt{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.alt summary::-webkit-details-marker{display:none}
 .alt summary{font-size:14px;font-weight:700;color:var(--accent);cursor:pointer}
 .alt ol{margin-top:6px;font-size:14px}
 .weekly{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
@@ -125,7 +126,15 @@ h3{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:12px 0 -6px}
     <p>店舗の予約ページを開いたり、申し込み済みや当選・落選を記録したりできます。自動入力だけなら不要です。</p>
     <div>
       <a class="btn" id="appBtn" href="#" target="_blank" rel="noopener" style="background:transparent;color:var(--accent);border:1px solid var(--accent)">予約アシスタントを開く</a>
-      <p class="sub">共有ボタン →「ホーム画面に追加」で、アプリのように使えます。</p>
+      <details class="alt" id="bmHow">
+        <summary class="btn" style="list-style:none;background:var(--soft);color:var(--accent)">ブックマーク・ホーム画面に追加する方法</summary>
+        <ol>
+          <li>上の「予約アシスタントを開く」でページを開く</li>
+          <li>Safari下の<span class="path">共有ボタン</span>(□に↑)を押す</li>
+          <li>ブックマークなら「<span class="path">ブックマークを追加</span>」→「保存」</li>
+          <li>ホーム画面なら「<span class="path">ホーム画面に追加</span>」→「追加」(アイコンから1タップで開けます)</li>
+        </ol>
+      </details>
     </div>
   </section>
 
