@@ -1,0 +1,38 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//yoyaku-assist//JP
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VTIMEZONE
+TZID:Asia/Tokyo
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0900
+TZOFFSETTO:+0900
+TZNAME:JST
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:weekly-boutique-reservation-20261016@yoyaku-assist
+DTSTAMP:20261019T173000Z
+DTSTART;TZID=Asia/Tokyo:20261016T100000
+DTEND;TZID=Asia/Tokyo:20261016T101500
+RRULE:FREQ=WEEKLY;BYDAY=FR
+SEQUENCE:1
+SUMMARY:来店予約の申し込み
+DESCRIPTION:今週分の来店予約を申し込みましょう。\n\n■
+ 新宿 https://reservation.rolexboutique-lexia.jp/shinjuku/reservation\n
+ ■名古屋栄 https://reservation.rolexboutique-lexia.jp/nagoya-sakae/re
+ servation\n■表参道 https://reservation.rolexboutique-omotesando-tokyo
+ .jp/omotesando/reservation/distinction/select\n■ヒルトンプラザ大
+ 阪 https://reservation.rolexboutique-hiltonplaza-osaka.jp/osaka-umeda/res
+ ervation\n■三越日本橋 https://reservation.rolexboutique-im.jp/nihom
+ bashi/reservation\n\nお客様情報入力の画面で 共有 →「予約
+ フォーム自動入力」
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:来店予約の申し込み
+TRIGGER:PT0M
+END:VALARM
+END:VEVENT
+END:VCALENDAR
