@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-title" content="予約アシスタント">
+<title>ロレックス予約アシスタント</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Shippori+Mincho:wght@600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 1カラムのスマホ用ツール。上に「今週の状態」、下にステップと入力項目のコピー */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --fg:#1b2420; --muted:#5d6a63; --line:#d9ded9;
+  --accent:#145c3f; --accent-fg:#ffffff; --gold:#9a7a2c; --done:#2f7a52; --soft:#e6efe9;
+  --f-display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111613; --surface:#1a211d; --fg:#e7ece8; --muted:#9aa8a0; --line:#2c3630;
+  --accent:#3f9c72; --accent-fg:#08110c; --gold:#d1b26a; --done:#5cbc8a; --soft:#1f2c25; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111613; --surface:#1a211d; --fg:#e7ece8; --muted:#9aa8a0; --line:#2c3630;
+  --accent:#3f9c72; --accent-fg:#08110c; --gold:#d1b26a; --done:#5cbc8a; --soft:#1f2c25; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-direction:column;gap:4px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--gold);font-weight:700}
+h1{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.3;margin:0;text-wrap:balance}
+h2{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:0 0 10px;font-weight:700}
+.status{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.status-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:4px 12px;border-radius:999px;background:var(--soft);color:var(--accent)}
+.pill.done{color:var(--done)}
+.next{font-family:var(--f-mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.btn{display:flex;justify-content:center;align-items:center;gap:8px;min-height:50px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-fg);font:inherit;font-weight:700;font-size:16px;text-decoration:none;cursor:pointer}
+.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);min-height:42px;font-size:14px}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+ol.steps li{border-bottom:1px solid var(--line)}
+.step{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 2px;cursor:pointer;align-items:start}
+.step input{width:22px;height:22px;margin:2px 0 0;accent-color:var(--accent)}
+.step b{display:block;font-weight:700}
+.step small{display:block;color:var(--muted);font-size:13px;line-height:1.55}
+.step.checked b{color:var(--muted);text-decoration:line-through}
+.pref{font-weight:700;color:var(--accent)}
+.fields{display:flex;flex-direction:column;gap:10px}
+.field{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.field label{grid-column:1/-1;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.field input,.field select{min-width:0;width:100%;border:0;background:transparent;color:var(--fg);font:inherit;font-size:16px;padding:4px 0}
+.field input::placeholder{color:var(--muted);opacity:.7}
+.copy{border:1px solid var(--line);background:var(--soft);color:var(--accent);font:inherit;font-size:13px;font-weight:700;border-radius:8px;padding:6px 12px;cursor:pointer;min-width:64px}
+.copy.ok{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.history{display:flex;flex-wrap:wrap;gap:6px}
+.history span{font-family:var(--f-mono);font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+.history span.ok{border-color:var(--done);color:var(--done)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:700;padding:7px 4px;border-radius:7px;cursor:pointer;min-width:0}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 0 0 1px var(--line)}
+.seg button.win[aria-pressed="true"]{background:var(--gold);color:var(--surface);box-shadow:none}
+.seg.sm{width:190px;max-width:55%;flex:none}
+.seg.sm button{padding:5px 2px;font-size:12px}
+.hlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.hrow .wk{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums;min-width:0}
+.score{margin:0 0 10px;font-size:14px}
+.score b{color:var(--gold);font-size:18px;font-variant-numeric:tabular-nums}
+.donebox{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.donebox input{width:24px;height:24px;margin:0;accent-color:var(--done)}
+.donebox b{display:block}
+.donebox small{display:block;color:var(--muted);font-size:13px}
+.donebox.on{border-color:var(--done);background:var(--soft)}
+.donebox.on b{color:var(--done)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:10px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg)}
+.view{display:flex;flex-direction:column;gap:22px}
+.sync{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border:1px solid var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;color:var(--gold)}
+.sync.ok{border-color:var(--line);color:var(--done)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mgrid .wide{grid-column:1/-1}
+.stores{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.store{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--fg);font:inherit;cursor:pointer;min-width:0}
+.store b{font-size:14px;line-height:1.35}
+.store small{font-size:12px;color:var(--muted)}
+.store small.ok{color:var(--done);font-weight:700}
+.store[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--soft)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (prefers-reduced-motion:reduce){.bar>i{transition:none}}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">ROLEX BOUTIQUE ・ 来店予約リクエスト</span>
+    <h1>毎週金曜の予約申し込み</h1>
+    <span class="next" id="nextFri"></span>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-yoyaku" aria-selected="true">予約</button>
+    <button type="button" role="tab" id="tab-master" aria-selected="false">マスター設定</button>
+  </nav>
+
+  <div class="sync" id="sync" hidden>
+    <span id="syncText"></span>
+    <button class="copy" type="button" id="syncBtn">ブックマークを更新</button>
+  </div>
+
+  <div class="view" id="view-yoyaku">
+  <section>
+    <h2>店舗を選ぶ</h2>
+    <div class="stores" id="stores"></div>
+  </section>
+
+  <section class="status" aria-live="polite">
+    <div class="status-row">
+      <strong id="storeName" style="font-size:17px"></strong>
+      <span class="pill" id="weekPill">今週:未申込</span>
+    </div>
+    <a class="btn" id="openLink" href="#" target="_blank" rel="noopener">予約ページを開く</a>
+    <label class="donebox" for="doneChk">
+      <input type="checkbox" id="doneChk">
+      <span><b>今週の申し込みが完了した</b><small id="doneAt">送信して完了画面が出たらチェック</small></span>
+    </label>
+    <div id="resultBox" hidden>
+      <span class="note" style="display:block;margin-bottom:6px">今週の結果(お店から連絡が来たら選ぶ)</span>
+      <div class="seg" id="resultSeg"></div>
+    </div>
+    <a class="btn ghost" id="lineBtn" href="#" target="_blank" rel="noopener" hidden>LINEの再通知からこの店舗を外す</a>
+  </section>
+
+  <section>
+    <h2>申し込み履歴と結果</h2>
+    <p class="score" id="score"></p>
+    <div class="hlist" id="history"></div>
+  </section>
+  </div>
+
+  <div class="view" id="view-master" hidden>
+  <section>
+    <h2>お客様情報マスター</h2>
+    <p class="note" style="margin-bottom:12px">予約サイトの「お客様情報入力」画面と同じ並びです。ここを変更すると自動入力の内容が変わります。各項目の「コピー」で手入力用にコピーもできます。</p>
+    <div class="fields mgrid" id="fields"></div>
+    <p class="note" id="savedAt" style="margin-top:10px"></p>
+    <p class="note" style="margin-top:6px">確認メールは各店舗の予約サイトのアドレス(例:shinjuku@reservation.rolexboutique-lexia.jp)から届きます。迷惑メール設定で受信できるようにしておいてください。</p>
+    <div class="sync" id="cloud" style="margin-top:10px" hidden>
+      <span id="cloudText">クラウド同期を確認中…</span>
+      <button class="copy" type="button" id="cloudBtn" hidden>今すぐ同期</button>
+    </div>
+    <p class="note" style="margin-top:6px">入力した内容と記録は、このiPhoneのSafariの中だけに保存されます。ほかの人には見えません。</p>
+  </section>
+
+  <section class="status" hidden>
+    <h2 style="margin:0">LINE通知との連携</h2>
+    <p class="note">申込済みにした店舗を、LINEの再通知から外すための設定です。GASで作った連携URLを貼ってください(https://script.google.com/… から始まるURL)。クラウド同期で他の端末にも入ります。</p>
+    <div class="field"><label for="f_notify">連携URL</label><input id="f_notify" type="url" placeholder="https://script.google.com/macros/s/…/exec?t=…" autocomplete="off"><button class="copy" type="button" id="notifyClear">消す</button></div>
+  </section>
+
+  <section class="status">
+    <h2 style="margin:0">iPhoneのショートカットに反映</h2>
+    <p class="note">上のマスターを変更したら、このボタンを押してください。ショートカット用のコードが、マスターの内容入りでコピーされます。</p>
+    <button class="btn" id="iosCopy" type="button">iPhone用コードをコピー</button>
+    <ol class="note" style="padding-left:1.2em;margin:0;display:flex;flex-direction:column;gap:4px">
+      <li>「ショートカット」アプリで「ロレックス自動入力」を開く</li>
+      <li>コードの部分をタップ →「全選択」→「ペースト」で貼り替える</li>
+      <li>左上の「<」で閉じれば反映完了</li>
+    </ol>
+  </section>
+
+  <section class="status">
+    <h2 style="margin:0">ブックマークで自動入力(iPhone・パソコン)</h2>
+    <p class="note">5店舗とも同じブックマークで使えます。下のボタンでコードをコピーし、ブックマークのアドレス(URL)欄に貼り付けて保存します。iPhoneのSafari:共有 →「ブックマークを追加」→ 本のアイコン → 編集 → 名前を「自動入力」、アドレスを消してペースト。使うときは入力画面で本のアイコン →「自動入力」。</p>
+    <a class="btn ghost" id="bmLink" href="#" draggable="true">LEXIA自動入力(ブックマークバーへドラッグ)</a>
+    <button class="btn" id="bmCopy" type="button">自動入力コードをコピー</button>
+    <ol class="note" style="padding-left:1.2em;margin:0;display:flex;flex-direction:column;gap:4px">
+      <li>Chromeで Ctrl+Shift+O(ブックマーク マネージャ)を開く</li>
+      <li>右上の「︙」→「新しいブックマークを追加」</li>
+      <li>名前に「LEXIA自動入力」、URL欄にコピーしたコードを貼り付けて保存</li>
+      <li>入力画面でブックマークを押す → 同意チェック2つを入れて次へ</li>
+    </ol>
+    <p class="note">ブックマークを更新するときは、ブックマークバーの「LEXIA自動入力」を右クリック →「編集」で、URL欄を新しいコードに貼り替えます。送信とSMSのコード入力はご自身で行います。</p>
+  </section>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+function stepsFor(id){return id==="omotesando"?[["予約タイプで「来店予約」を選ぶ","「リクエストを開始する」を押すと、来店日の選択に進みます。"]].concat(BASE_STEPS):BASE_STEPS}
+const BASE_STEPS=[
+  ["予約ページを開く","上の緑のボタンから、選んだ店舗のページを開きます。"],
+  ["来店日・時間を選ぶ","希望:<span class='pref' id='prefTxt'></span>"],
+  ["注意事項を読んで「同意する」",""],
+  ["お客様情報を入力","ブックマーク「LEXIA自動入力」を押すと、マスターの内容がまとめて入ります。"],
+  ["同意のチェックを2つ入れる","「個人情報取り扱いに同意する」と「営業についてのお知らせに同意する」。"],
+  ["SMSの認証コードを入力","届いたコードを入れます。届かない場合は受信拒否設定を確認。"],
+  ["送信して完了画面を確認","完了画面のスクショを残しておくと安心です。"]
+];
+const FIELDS=[
+  ["sei","姓","例:田中","text"],
+  ["mei","名","例:太郎","text"],
+  ["seiKana","セイ","例:タナカ","text"],
+  ["meiKana","メイ","例:タロウ","text"],
+  ["birth","生年月日","","date"],
+  ["tel","携帯電話番号","例:09012345678","tel"],
+  ["mail","Eメールアドレス","例:taro@example.com","email"],
+  ["mail2","Eメールアドレス(再入力)","左と同じ内容が入ります","email",true]
+];
+const KEY="lexia-shinjuku-v1";
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}cloudSched()}
+const STORES=[
+  {id:"shinjuku",name:"レキシア 新宿店",url:"https://reservation.rolexboutique-lexia.jp/shinjuku/reservation"},
+  {id:"nagoya",name:"レキシア 名古屋栄店",url:"https://reservation.rolexboutique-lexia.jp/nagoya-sakae/reservation"},
+  {id:"omotesando",name:"ロレックス ブティック 表参道",url:"https://reservation.rolexboutique-omotesando-tokyo.jp/omotesando/reservation/distinction/select"},
+  {id:"osaka",name:"ヒルトンプラザ大阪",url:"https://reservation.rolexboutique-hiltonplaza-osaka.jp/osaka-umeda/reservation"},
+  {id:"nihombashi",name:"ロレックス ブティック 三越日本橋",url:"https://reservation.rolexboutique-im.jp/nihombashi/reservation"}
+];
+let S=load(); S.fields=S.fields||{}; S.weeks=S.weeks||{};
+// 旧形式(新宿のみ)の記録を店舗別に移す
+if(!S.byStore){S.byStore={shinjuku:S.weeks};S.weeks=null}
+S.store=S.store||"shinjuku";
+// 生年月日を日付欄の形式(YYYY-MM-DD)にそろえる
+function isoDate(v){const b=(v||"").trim().replace(/[年月\.\/]/g,"-").replace(/日/,"").split("-").filter(Boolean);
+  return b.length===3?b[0]+"-"+b[1].padStart(2,"0")+"-"+b[2].padStart(2,"0"):""}
+if(S.fields.birth)S.fields.birth=isoDate(S.fields.birth)||S.fields.birth;
+
+// 日本時間での「今週」(金曜始まり)のキー
+function jstNow(){const d=new Date();return new Date(d.getTime()+(d.getTimezoneOffset()+540)*60000)}
+function weekKey(){const d=jstNow();const back=(d.getDay()-5+7)%7;const f=new Date(d);f.setDate(d.getDate()-back);
+  return f.getFullYear()+"-"+String(f.getMonth()+1).padStart(2,"0")+"-"+String(f.getDate()).padStart(2,"0")}
+function nextFriday(){const d=jstNow();let add=(5-d.getDay()+7)%7;if(add===0&&d.getHours()>=10)add=7;
+  const f=new Date(d);f.setDate(d.getDate()+add);return f}
+const wk=weekKey();
+// 申込完了の記録:S.done[店舗][週] = 完了した日時
+S.done=S.done||{};
+if(S.byStore&&!S.migrated){Object.keys(S.byStore).forEach(id=>{const w=S.byStore[id]||{};
+  Object.keys(w).forEach(k=>{if(Array.isArray(w[k])&&w[k].length>=stepsFor(id).length){(S.done[id]=S.done[id]||{})[k]=Date.now()}})});
+  S.migrated=true;save()}
+function D(id){return S.done[id||S.store]=S.done[id||S.store]||{}}
+// 結果の記録:S.result[店舗][週] = "win"(当選) / "lose"(落選)、なし = 未連絡
+S.result=S.result||{};
+function R(id){return S.result[id||S.store]=S.result[id||S.store]||{}}
+const RESULTS=[["","未連絡"],["win","当選"],["lose","落選"]];
+function segEl(cur,onPick,small){const d=document.createElement("div");d.className="seg"+(small?" sm":"");
+  RESULTS.forEach(([v,l])=>{const b=document.createElement("button");b.type="button";b.textContent=l;if(v)b.className=v;
+    b.setAttribute("aria-pressed",(cur||"")===v);b.addEventListener("click",()=>onPick(v));d.appendChild(b)});return d}
+function setResult(id,k,v){const r=R(id);if(v)r[k]=v;else delete r[k];S.resultAt=Date.now();save();render();
+  if(v)toast(v==="win"?"当選を記録しました":"落選を記録しました")}
+function tally(id){const ks=Object.keys(D(id)),r=R(id);return {n:ks.length,win:ks.filter(k=>r[k]==="win").length}}
+function fmt(t){const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
+
+function renderStores(){
+  const box=document.getElementById("stores");box.innerHTML="";
+  STORES.forEach(st=>{const ok=!!D(st.id)[wk],t=tally(st.id);
+    const b=document.createElement("button");b.type="button";b.className="store";b.setAttribute("aria-pressed",st.id===S.store);
+    b.innerHTML=`<b>${st.name}</b><small class="${ok?"ok":""}">${ok?"✓ 今週 申込済み":"今週 未申込"}</small><small>当選 ${t.win} / 申込 ${t.n}</small>`;
+    b.addEventListener("click",()=>{S.store=st.id;save();render()});box.appendChild(b)});
+}
+
+function render(){
+  const st=STORES.find(x=>x.id===S.store)||STORES[0];
+  document.getElementById("storeName").textContent=st.name;
+  const ol0=document.getElementById("openLink");ol0.href=st.url;ol0.textContent=st.name+"の予約ページを開く";
+  const t=D()[wk], ok=!!t;
+  const chk=document.getElementById("doneChk");chk.checked=ok;
+  chk.closest(".donebox").classList.toggle("on",ok);
+  document.getElementById("doneAt").textContent=ok?`${fmt(t)} に完了`:"送信して完了画面が出たらチェック";
+  const nu=(S.fields.notify||"").trim(),lb=document.getElementById("lineBtn");
+  const nuOk=/^https:\/\/script\.google\.com\//.test(nu);
+  lb.hidden=!(ok&&nuOk);
+  if(nuOk)lb.href=nu+(nu.indexOf("?")<0?"?":"&")+"done="+st.id;
+  const p=document.getElementById("weekPill");
+  p.textContent=ok?"今週:申込済み":"今週:未申込";p.classList.toggle("done",ok);
+  const nf=nextFriday();const w="日月火水木金土";
+  document.getElementById("nextFri").textContent=`次回 ${nf.getMonth()+1}/${nf.getDate()}(${w[nf.getDay()]}) 10:00`;
+  // 今週の結果
+  const rb=document.getElementById("resultBox");rb.hidden=!ok;
+  const rs=document.getElementById("resultSeg");rs.replaceWith(Object.assign(segEl(R()[wk],v=>setResult(S.store,wk,v)),{id:"resultSeg"}));
+  // 成績と履歴
+  const all=STORES.reduce((a,s)=>{const t=tally(s.id);a.n+=t.n;a.win+=t.win;return a},{n:0,win:0});
+  const me=tally();
+  document.getElementById("score").innerHTML=me.n
+    ?`${st.name}:当選 <b>${me.win}</b> 回 / 申込 ${me.n} 回(${Math.round(me.win/me.n*100)}%) ・ 全店舗:当選 ${all.win} / 申込 ${all.n}`
+    :`${st.name}はまだ記録がありません。全店舗:当選 ${all.win} / 申込 ${all.n}`;
+  const h=document.getElementById("history");h.innerHTML="";
+  Object.keys(D()).sort().reverse().slice(0,20).forEach(k=>{const row=document.createElement("div");row.className="hrow";
+    const l=document.createElement("span");l.className="wk";l.textContent=k.slice(5).replace("-","/")+" 週";
+    row.appendChild(l);row.appendChild(segEl(R()[k],v=>setResult(S.store,k,v),true));h.appendChild(row)});
+  renderStores();
+}
+document.getElementById("doneChk").addEventListener("change",e=>{
+  if(e.target.checked){D()[wk]=Date.now();toast("申込完了を記録しました")}else{delete D()[wk];toast("チェックを外しました")}
+  save();render()});
+
+const fw=document.getElementById("fields");
+function showSaved(){const e=document.getElementById("savedAt");
+  if(S.masterAt){const d=new Date(S.masterAt);e.textContent=`最終更新:${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}(自動保存)`}
+  else e.textContent="入力すると自動で保存されます。"}
+FIELDS.forEach(([k,l,ph,t,mirror])=>{const d=document.createElement("div");d.className="field";
+  d.innerHTML=`<label for="f_${k}">${l}</label><input id="f_${k}" type="${t}" placeholder="${ph}" autocomplete="off" ${mirror?"readonly":""}><button class="copy" type="button">コピー</button>`;
+  const inp=d.querySelector("input");inp.value=mirror?(S.fields.mail||""):(S.fields[k]||"");
+  inp.addEventListener("input",()=>{if(mirror)return;S.fields[k]=inp.value;S.masterAt=Date.now();save();showSaved();
+    if(k==="mail")document.getElementById("f_mail2").value=inp.value;renderSync()});
+  inp.addEventListener("change",()=>inp.dispatchEvent(new Event("input",{bubbles:true})));
+  const b=d.querySelector("button");
+  b.addEventListener("click",()=>{const v=inp.value.trim();if(!v){toast("先に内容を入力してください");inp.focus();return}
+    const okfn=()=>{b.textContent="済";b.classList.add("ok");toast(l+"をコピーしました");setTimeout(()=>{b.textContent="コピー";b.classList.remove("ok")},1600)};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(okfn,()=>{inp.select();toast("選択しました。長押しでコピーしてください")})}
+    else{inp.select();toast("選択しました。長押しでコピーしてください")}});
+  fw.appendChild(d)});
+
+
+const nfIn=document.getElementById("f_notify");
+nfIn.value=S.fields.notify||"";
+nfIn.addEventListener("input",()=>{S.fields.notify=nfIn.value.trim();S.masterAt=Date.now();save();showSaved();render()});
+document.getElementById("notifyClear").addEventListener("click",()=>{nfIn.value="";nfIn.dispatchEvent(new Event("input"))});
+
+// 予約サイト上で動く自動入力コード(ブックマークレット)を作る
+function bmData(){const f=S.fields;
+  return {sei:f.sei||"",mei:f.mei||"",seiKana:f.seiKana||"",meiKana:f.meiKana||"",birth:isoDate(f.birth),tel:(f.tel||"").replace(/[^0-9]/g,""),mail:(f.mail||"").trim()}}
+function bmCode(){
+  const src="(function(){var M="+JSON.stringify(bmData())+";"+fillCore.toString()+";alert(fillCore(M));})();";
+  return "javascript:"+encodeURIComponent(src.replace(/\n/g," "));
+}
+function fillCore(M){
+  var I=[].slice.call(document.querySelectorAll('input,textarea')).filter(function(i){return !/hidden|checkbox|radio|submit|button|file|image|reset/.test(i.type)&&!i.disabled&&i.offsetParent!==null;});
+  var SEL=[].slice.call(document.querySelectorAll('select')).filter(function(i){return !i.disabled&&i.offsetParent!==null;});
+  function own(el){
+    var t=[el.placeholder,el.name,el.id,el.getAttribute('aria-label'),el.getAttribute('autocomplete')].join(' ');
+    var l=el.id&&document.querySelector('label[for="'+el.id+'"]');
+    if(l)t+=' '+l.textContent;
+    var c=el.closest&&el.closest('label');
+    if(c)t+=' '+c.textContent;
+    return t;
+  }
+  function near(el){
+    var p=el.parentElement,n=0,t='';
+    while(p&&n<4){
+      if(p.querySelectorAll('input,select,textarea').length!==1)break;
+      t=p.textContent||'';
+      p=p.parentElement;n++;
+    }
+    return t.slice(0,80);
+  }
+  function cls(el,h){
+    if(el.type==='date'||/生年月日|birth|誕生|bday/i.test(h))return 'birth';
+    if(el.type==='tel'||/電話|携帯|tel|phone/i.test(h))return 'tel';
+    if(el.type==='email'||/mail|メール/i.test(h))return /確認|再入力|もう一度|confirm|retype|re-?enter/i.test(h)?'mail2':'mail';
+    if(/カナ|ｶﾅ|フリガナ|ふりがな|kana|タナカ|タロウ|セイ|メイ/i.test(h)){
+      if(/タナカ|セイ|姓|sei|last|family/i.test(h))return 'seiKana';
+      if(/タロウ|メイ|名|mei|first|given/i.test(h))return 'meiKana';
+      return '';
+    }
+    if(/田中|姓|苗字|sei|last|family|surname/i.test(h))return 'sei';
+    if(/太郎|名|mei|first|given/i.test(h))return 'mei';
+    return '';
+  }
+  function set(el,v){
+    if(!el||!v)return false;
+    var d=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el),'value');
+    el.focus();
+    if(d&&d.set)d.set.call(el,v);else el.value=v;
+    ['input','change','blur'].forEach(function(t){el.dispatchEvent(new Event(t,{bubbles:true}));});
+    return true;
+  }
+  var got={},used=[];
+  I.forEach(function(el){
+    var k=cls(el,own(el));
+    if(!k)k=cls(el,near(el));
+    if(k&&!got[k]){got[k]=el;used.push(el);}
+  });
+  var T=I.filter(function(i){return /^(text|)$/.test(i.type)&&used.indexOf(i)<0;});
+  if(!got.sei&&!got.mei&&!got.seiKana&&!got.meiKana&&T.length>=4){
+    got.sei=T[0];got.mei=T[1];got.seiKana=T[2];got.meiKana=T[3];
+  }
+  if(!got.mail){var e0=I.filter(function(i){return i.type==='email'&&used.indexOf(i)<0;})[0];if(e0){got.mail=e0;used.push(e0);}}
+  if(!got.mail2){var e1=I.filter(function(i){return i.type==='email'&&used.indexOf(i)<0;})[0];if(e1)got.mail2=e1;}
+  var labels={sei:'姓',mei:'名',seiKana:'セイ',meiKana:'メイ',birth:'生年月日',tel:'携帯番号',mail:'メール',mail2:'メール再入力'};
+  var order=['sei','mei','seiKana','meiKana','birth','tel','mail','mail2'];
+  var ng=[],ok=0;
+  order.forEach(function(k){
+    var v=k==='mail2'?M.mail:M[k];
+    if(set(got[k],v))ok++;else ng.push(labels[k]);
+  });
+  if(ng.indexOf('生年月日')>=0&&M.birth&&SEL.length>=3){
+    var b=M.birth.split('-'),done=0;
+    SEL.forEach(function(s){
+      var h=own(s)+' '+near(s),want=/年|year/i.test(h)?b[0]:/月|month/i.test(h)?b[1]:/日|day/i.test(h)?b[2]:null;
+      if(!want)return;
+      var n=parseInt(want,10),opt=[].slice.call(s.options).filter(function(o){return parseInt(o.value,10)===n||parseInt(o.text,10)===n;})[0];
+      if(opt){s.value=opt.value;s.dispatchEvent(new Event('change',{bubbles:true}));done++;}
+    });
+    if(done===3){ng.splice(ng.indexOf('生年月日'),1);ok++;}
+  }
+  var host=location.hostname;
+  var shop=/omotesando/.test(host)?'表参道':/hiltonplaza/.test(host)?'ヒルトンプラザ大阪':/rolexboutique-im/.test(host)?'三越日本橋':/lexia/.test(host)?'レキシア':'';
+  if(ok===0)return (shop?shop+'の':'')+'このページにはお客様情報の入力欄が見つかりません。日時選択と注意事項に同意したあと、「お客様情報入力」画面で実行してください。';
+  return ng.length?('入力できなかった項目:'+ng.join('、')+'\nこの項目は手で入力してください。'):'すべて入力しました。同意チェック2つを入れて次へ進んでください。';
+}
+const bmLink=document.getElementById("bmLink");
+function refreshBm(){try{bmLink.setAttribute("href",bmCode())}catch(e){}}
+bmLink.addEventListener("click",e=>{e.preventDefault();toast("このボタンはブックマークバーにドラッグして使います")});
+function copyBm(){
+  if(!S.fields.sei||!S.fields.mail){toast("先にマスターを入力してください");showView("master");return}
+  const c=bmCode(),sig=JSON.stringify(bmData());
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(c).then(()=>{S.bmSig=sig;save();renderSync();toast("コピーしました。ブックマークのURL欄に貼り替えてください")},()=>toast("コピーできませんでした"))}
+  else toast("コピーできませんでした")}
+document.getElementById("bmCopy").addEventListener("click",copyBm);
+
+// iPhoneショートカット(WebページでJavaScriptを実行)用のコード
+function iosCode(){
+  const D=bmData(),q=v=>JSON.stringify(v);
+  return `// ===== マスター(予約アシスタントのアプリで作成) =====
+var M = {
+  sei: ${q(D.sei)},
+  mei: ${q(D.mei)},
+  seiKana: ${q(D.seiKana)},
+  meiKana: ${q(D.meiKana)},
+  birth: ${q(D.birth)},
+  tel: ${q(D.tel)},
+  mail: ${q(D.mail)}
+};
+// ===== ここから下は変更しないでください =====
+`+fillCore.toString()+`
+completion(fillCore(M));
+`}
+document.getElementById("iosCopy").addEventListener("click",()=>{
+  if(!S.fields.sei||!S.fields.mail){toast("先にマスターを入力してください");return}
+  const c=iosCode();
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(c).then(()=>toast("コピーしました。ショートカットのコードに貼り替えてください"),()=>toast("コピーできませんでした"))}
+  else toast("コピーできませんでした")});
+document.getElementById("syncBtn").addEventListener("click",copyBm);
+function renderSync(){const box=document.getElementById("sync"),t=document.getElementById("syncText"),btn=document.getElementById("syncBtn");
+  const sig=JSON.stringify(bmData());box.hidden=false;
+  if(S.bmSig===sig){box.classList.add("ok");t.textContent="ブックマークはマスターと一致しています";btn.hidden=true}
+  else{box.classList.remove("ok");btn.hidden=false;
+    t.textContent=S.bmSig?"マスターが変更されました。ブックマークの更新が必要です":"ブックマークをマスターの内容で登録・更新してください"}}
+document.getElementById("fields").addEventListener("input",refreshBm);
+refreshBm();
+
+// ===== クラウド同期(ログイン中のアカウント専用の非公開領域) =====
+var cloud=null,cloudTimer=0,cloudState="check";
+function setCloud(st,extra){cloudState=st;const box=document.getElementById("cloud"),t=document.getElementById("cloudText"),btn=document.getElementById("cloudBtn");
+  if(!box)return;box.classList.toggle("ok",st==="on");btn.hidden=st!=="on"&&st!=="err";
+  t.textContent=st==="on"?"クラウド同期 ON"+(extra?"("+extra+")":"")+":別の端末でも同じマスターが使えます":
+    st==="err"?"クラウドと通信できませんでした。この端末には保存されています":
+    st==="off"?"この端末のみに保存中。claude.aiにログインした状態で開くとクラウド同期されます":"クラウド同期を確認中…"}
+function cloudPayload(){return {fields:S.fields||{},masterAt:S.masterAt||0,done:S.done||{},result:S.result||{},resultAt:S.resultAt||0}}
+function mergeIn(r){let ch=false;
+  if(r.masterAt&&r.masterAt>(S.masterAt||0)){S.fields=Object.assign({},r.fields||{});S.masterAt=r.masterAt;ch=true}
+  const rd=r.done||{};Object.keys(rd).forEach(id=>{const m=rd[id]||{};Object.keys(m).forEach(w=>{if(!D(id)[w]){D(id)[w]=m[w];ch=true}})});
+  if(r.resultAt&&r.resultAt>(S.resultAt||0)){S.result=JSON.parse(JSON.stringify(r.result||{}));S.resultAt=r.resultAt;ch=true}
+  return ch}
+function refreshInputs(){const n0=document.getElementById("f_notify");if(n0)n0.value=S.fields.notify||"";FIELDS.forEach(([k,,,,mirror])=>{const el=document.getElementById("f_"+k);if(el)el.value=mirror?(S.fields.mail||""):(S.fields[k]||"")});
+  showSaved();renderSync();refreshBm();render()}
+function cloudSched(){if(!cloud)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(cloudPush,900)}
+async function cloudPush(){if(!cloud)return;try{await cloud.set(cloudPayload());setCloud("on",fmt(Date.now())+" 保存")}catch(e){setCloud("err")}}
+async function cloudSync(){if(!cloud)return;try{const snap=await cloud.get();
+    if(snap.exists&&mergeIn(snap.data()||{})){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}refreshInputs();toast("クラウドの内容を読み込みました")}
+    await cloudPush()}catch(e){setCloud("err")}}
+async function cloudInit(){
+  try{const c=window.claude;if(!c||!c.use){setCloud("off");return}
+    const db=await c.use("db"),user=await c.use("user");
+    if(!db||!user){setCloud("off");return}
+    const id=await user.id();if(!id){setCloud("off");return}
+    cloud=db.collection("data/users/"+id).doc("master");
+    await cloudSync()}catch(e){setCloud("err")}}
+document.getElementById("cloudBtn").addEventListener("click",cloudSync);
+cloudInit();
+
+
+// タブ切り替え
+function showView(v){["yoyaku","master"].forEach(x=>{document.getElementById("view-"+x).hidden=x!==v;document.getElementById("tab-"+x).setAttribute("aria-selected",x===v)});
+  try{sessionStorage.setItem("lexia-view",v)}catch(e){}}
+document.getElementById("tab-yoyaku").addEventListener("click",()=>showView("yoyaku"));
+document.getElementById("tab-master").addEventListener("click",()=>showView("master"));
+let v0="yoyaku";try{v0=sessionStorage.getItem("lexia-view")||"yoyaku"}catch(e){}
+if(location.hash==="#master")v0="master";
+showView(v0);showSaved();renderSync();
+
+let tt;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,1800)}
+render();
+</script>
+
+</body>
+</html>
