@@ -74,7 +74,7 @@ h3{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:12px 0 -6px}
     <span class="eyebrow">予約アシスト ・ iPhone版 説明書</span>
     <h1>はじめかた</h1>
     <p class="lead">毎週の来店予約の申し込みを楽にするセットです。予約サイトの「お客様情報入力」を共有ボタンからワンタップで入力し、申し込み状況と当選・落選を記録できます。送信とSMS認証はご自身で行います。</p>
-    <span class="time">準備 約2分 ・ iPhone(Safari)・ iOS 17以降</span>
+    <span class="time">準備 約3分 ・ iPhone(Safari)・ iOS 17以降</span>
   </header>
 
   <h3>最初に1回だけ(3ステップ)</h3>
@@ -112,11 +112,16 @@ h3{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:12px 0 -6px}
 
   <section class="step" id="s3">
     <span class="num">3</span>
-    <h2>毎週の通知をカレンダーに入れる</h2>
-    <p>下のボタンを押し、「<span class="path">カレンダーに追加</span>」→「すべてを追加」を押します。毎週金曜10時に、5店舗のリンク付きで通知が届きます。</p>
+    <h2>毎週のお知らせを受け取る</h2>
+    <p>好きなほうを選んでください。</p>
     <div>
-      <a class="btn" href="weekly.ics">カレンダーに追加</a>
-      <label class="check"><input type="checkbox" data-step="s3">追加した</label>
+      <div id="lineBox">
+        <p class="sub"><b>LINEで受け取る(おすすめ)</b>:友だち追加すると、毎週金曜10時に予約ページのリンクが届きます。曜日と時間は、トークで「<span class="path">水曜 21時</span>」「<span class="path">毎日 9時</span>」のように送れば自由に変えられます。</p>
+        <a class="btn" id="lineBtn" href="#" target="_blank" rel="noopener" style="background:#06c755;color:#fff">LINEで友だち追加</a>
+      </div>
+      <p class="sub" style="margin-top:14px"><b>カレンダーで受け取る</b>:毎週金曜10時に通知が出ます。</p>
+      <a class="btn" href="weekly.ics" style="background:transparent;color:var(--accent);border:1px solid var(--accent)">カレンダーに追加</a>
+      <label class="check"><input type="checkbox" data-step="s3">設定した</label>
     </div>
   </section>
 
@@ -141,11 +146,11 @@ h3{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:12px 0 -6px}
   <h3>毎週金曜の使い方</h3>
   <section class="weekly">
     <ol>
-      <li><span class="t">10:00</span><span>カレンダーの通知が届く。通知内のリンク(または下の対応店舗)から予約ページを<span class="path">Safariで</span>開く</span></li>
+      <li><span class="t">通知</span><span>LINE(またはカレンダー)のお知らせが届く。リンク(または下の対応店舗)から予約ページを<span class="path">Safariで</span>開く</span></li>
       <li><span class="t">日時</span><span>来店日・時間を選び、注意事項に「同意する」(表参道は最初に「来店予約」を選ぶ)</span></li>
       <li><span class="t">入力</span><span>「お客様情報入力」で<span class="path">共有ボタン</span>(□に↑)→「<span class="path">予約フォーム自動入力</span>」。初回だけ「常に許可」</span></li>
       <li><span class="t">送信</span><span>同意チェック2つ → 次へ → SMSのコードを入れて送信</span></li>
-      <li><span class="t">記録</span><span>(任意)予約アシスタントで「今週の申し込みが完了した」にチェック。次の店舗へ</span></li>
+      <li><span class="t">記録</span><span>LINEに「<span class="path">済</span>」と送る(任意で予約アシスタントにも記録)。次の店舗へ</span></li>
       <li><span class="t">結果</span><span>お店から連絡が来たら「当選/落選」を選ぶ。店舗ごとの当選率が見られます</span></li>
     </ol>
   </section>
@@ -165,6 +170,8 @@ h3{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:12px 0 -6px}
       <p>「ショートカット」アプリで「予約フォーム自動入力」を削除し、手順1のボタンからもう一度追加すると、質問が出て入力し直せます。</p></details>
     <details><summary>入力した情報はどこに保存される?</summary>
       <p>ショートカットの情報は、お使いのiPhoneの中だけに保存され、販売者や外部には送られません。予約アシスタントの記録は、お使いの端末(claude.aiにログインしている場合はご自身のアカウント専用の領域)に保存され、ほかの利用者からは見えません。</p></details>
+    <details><summary>LINEの通知の曜日・時間を変えたい / 止めたい</summary>
+      <p>公式アカウントのトークで「金曜 10時」「月 金 8時」「平日 7時半」のように送ると変更できます。「設定」で今の設定を確認、「停止」で止める、「再開」で再開できます。</p></details>
     <details><summary>予約は必ず取れる?</summary>
       <p>いいえ。各店舗の予約は先着順ではなく、お店の判断で案内されます。このセットは入力と記録の手間を減らすためのもので、当選を保証するものではありません。</p></details>
   </div>
@@ -173,6 +180,8 @@ h3{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:12px 0 -6px}
 <script>
 // 販売者が用意するリンク
 const APP_URL = "https://mtaka1114-ui.github.io/yoyaku-assist/app/";
+const LINE_URL = ""; // LINE公式アカウントの友だち追加URL(https://lin.ee/…)
+if(LINE_URL){document.getElementById("lineBtn").href=LINE_URL}else{document.getElementById("lineBox").hidden=true}
 
 const STORES=[
   ["レキシア 新宿店","https://reservation.rolexboutique-lexia.jp/shinjuku/reservation",""],
